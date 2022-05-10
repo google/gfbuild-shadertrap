@@ -44,6 +44,7 @@ case "$(uname)" in
   NINJA_OS="win"
   BUILD_PLATFORM="Windows_x64"
   PYTHON="python.exe"
+  choco install zip
   ;;
 
 *)
