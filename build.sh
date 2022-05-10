@@ -44,6 +44,7 @@ case "$(uname)" in
   NINJA_OS="win"
   BUILD_PLATFORM="Windows_x64"
   PYTHON="python.exe"
+  CMAKE_OPTIONS+=("-DCMAKE_C_COMPILER=cl.exe" "-DCMAKE_CXX_COMPILER=cl.exe")
   choco install zip
   ;;
 
