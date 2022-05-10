@@ -46,9 +46,6 @@ case "$(uname)" in
   PYTHON="python.exe"
   CMAKE_OPTIONS+=("-DCMAKE_C_COMPILER=cl.exe" "-DCMAKE_CXX_COMPILER=cl.exe")
   choco install zip
-  ls "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build"
-  ls "/c/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Auxiliary/Build"
-  exit 1
   ;;
 
 *)
