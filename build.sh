@@ -121,9 +121,9 @@ case "$(uname)" in
   for config in "Debug" "Release"; do
     mkdir "temp/build-${config}"
     pushd "temp/build-${config}"
-      cmake -G Ninja .. -DCMAKE_BUILD_TYPE="${CONFIG}" "${CMAKE_OPTIONS[@]}"
-      cmake --build . --config "${CONFIG}"
-      cmake -DCMAKE_INSTALL_PREFIX=./install -DBUILD_TYPE="${CONFIG}" -P cmake_install.cmake
+      cmake -G Ninja ../.. -DCMAKE_BUILD_TYPE="${config}" "${CMAKE_OPTIONS[@]}"
+      cmake --build . --config "${config}"
+      cmake -DCMAKE_INSTALL_PREFIX=./install -DBUILD_TYPE="${config}" -P cmake_install.cmake
     popd
   done
   ;;
