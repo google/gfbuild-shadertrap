@@ -117,7 +117,6 @@ case "$(uname)" in
     ls
   popd
   export CMAKE_PREFIX_PATH="${HOME}/angle-release"
-  CMAKE_OPTIONS+=("-DCMAKE_C_COMPILER=cl.exe" "-DCMAKE_CXX_COMPILER=cl.exe")
   for config in "Debug" "Release"; do
     mkdir "temp/build-${config}"
     pushd "temp/build-${config}"
