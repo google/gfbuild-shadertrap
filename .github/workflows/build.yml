@@ -72,3 +72,5 @@ jobs:
         shell: cmd
         if: |
           startsWith(matrix.os, 'windows')
+
+“pr:” trigger
