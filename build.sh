@@ -40,6 +40,14 @@ case "$(uname)" in
   df -h
   ;;
 
+"MINGW"*|"MSYS_NT"*)
+  NINJA_OS="win"
+  BUILD_PLATFORM="Windows_x64"
+  PYTHON="python.exe"
+  CMAKE_OPTIONS+=("-DCMAKE_C_COMPILER=cl.exe" "-DCMAKE_CXX_COMPILER=cl.exe")
+  choco install zip
+  ;;
+
 *)
   echo "Unknown OS"
   exit 1
@@ -87,17 +95,45 @@ cd "${TARGET_REPO_NAME}"
 git checkout "${COMMIT_ID}"
 git submodule update --init
 
-# Source the dev shell to download clang-tidy and other tools.
-# Developers should *run* the dev shell, but we want to continue executing this script.
-export SHADERTRAP_SKIP_BASH=1
+case "$(uname)" in
+"Linux")
+  # Source the dev shell to download clang-tidy and other tools.
+  # Developers should *run* the dev shell, but we want to continue executing this script.
+  export SHADERTRAP_SKIP_BASH=1
 
-# Skip additional checks after building. These are part of ShaderTrap CI, and
-# are not necessary when releasing.
-export SHADERTRAP_SKIP_CHECK_COMPILE_COMMANDS=1
+  # Skip additional checks after building. These are part of ShaderTrap CI, and
+  # are not necessary when releasing.
+  export SHADERTRAP_SKIP_CHECK_COMPILE_COMMANDS=1
 
-source ./dev_shell.sh.template
+  source ./dev_shell.sh.template
 
-check_build.sh
+  check_build.sh
+  ;;
+
+"MINGW"*|"MSYS_NT"*)
+  # Needed to get EGL
+  mkdir -p "${HOME}/angle-release"
+  pushd "${HOME}/angle-release"
+    curl -fsSL -o angle-release.zip https://github.com/paulthomson/build-angle/releases/download/v-592879ad24e66c7c68c3a06d4e2227630520da36/MSVC2015-Release-x64.zip
+    unzip angle-release.zip
+    ls
+  popd
+  export CMAKE_PREFIX_PATH="${HOME}/angle-release"
+  for config in "Debug" "Release"; do
+    mkdir "temp/build-${config}"
+    pushd "temp/build-${config}"
+      cmake -G Ninja ../.. -DCMAKE_BUILD_TYPE="${config}" "${CMAKE_OPTIONS[@]}"
+      cmake --build . --config "${config}"
+      cmake -DCMAKE_INSTALL_PREFIX=./install -DBUILD_TYPE="${config}" -P cmake_install.cmake
+    popd
+  done
+  ;;
+
+*)
+  echo "Unknown OS"
+  exit 1
+  ;;
+esac
 
 GRAPHICSFUZZ_COMMIT_SHA="b82cf495af1dea454218a332b88d2d309657594d"
 OPEN_SOURCE_LICENSES_URL="https://github.com/google/gfbuild-graphicsfuzz/releases/download/github/google/gfbuild-graphicsfuzz/${GRAPHICSFUZZ_COMMIT_SHA}/OPEN_SOURCE_LICENSES.TXT"
@@ -108,10 +144,15 @@ curl -fsSL -o OPEN_SOURCE_LICENSES.TXT "${OPEN_SOURCE_LICENSES_URL}"
 for config in "Debug" "Release"; do
   INSTALL_DIR="${INSTALL_DIR_PREFIX}${config}"
   mkdir -p "${INSTALL_DIR}/bin"
+  cp "temp/build-${config}/src/shadertrap/shadertrap" "${INSTALL_DIR}/bin/"
 
   case "$(uname)" in
   "Linux")
-    cp "temp/build-${config}/src/shadertrap/shadertrap" "${INSTALL_DIR}/bin/"
+    ;;
+
+  "MINGW"*|"MSYS_NT"*)
+    # Required as EGL is not available on Windows in a standard way.
+    cp "${HOME}/angle-release/libEGL.dll" "${INSTALL_DIR}/bin/"
     ;;
 
   *)
